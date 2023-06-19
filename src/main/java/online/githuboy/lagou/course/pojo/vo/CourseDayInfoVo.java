@@ -14,4 +14,5 @@ public class CourseDayInfoVo implements Serializable {
     private Integer dayId;
     private String dayName;
     private List<LessonInfoVo> lessonInfoVos;
+    // liveInfoVos
 }

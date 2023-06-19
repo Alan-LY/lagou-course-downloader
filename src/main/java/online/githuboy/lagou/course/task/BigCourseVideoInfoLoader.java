@@ -122,7 +122,7 @@ public class BigCourseVideoInfoLoader implements Runnable, NamedTask {
                 }
             }
         } catch (Exception e) {
-            log.error("获取视频:【{}】信息失败:", this.videoName, e);
+            log.error("获取视频:【{} {}】信息失败:", this.videoName, this.lessonId, e);
             if (this.retryCount < MAX_RETRY_COUNT) {
                 this.retryCount += 1;
                 log.info("第:{}次重试获取:{}", this.retryCount, this.videoName);

@@ -19,24 +19,12 @@ public class App_XunLianYing {
     public static void main(String[] args) throws IOException, InterruptedException {
 
         // 拉钩训练营课程ID
-        String courseId = "33";
+        String courseId = "4";
         //  视频保存的目录
         String savePath = ConfigUtil.readValue("mp4_xunlianying_dir");
 
         BigCourseDownloader downloader = new BigCourseDownloader(courseId, savePath);
 
-        Thread logThread = new Thread(() -> {
-            while (true) {
-                log.info("Thread pool:{}", ExecutorService.getExecutor());
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, "log-thread");
-
-        logThread.setDaemon(true);
         downloader.start();
         ExecutorService.tryTerminal();
     }

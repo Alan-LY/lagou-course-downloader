@@ -108,6 +108,7 @@ public class BigCourseDownloader {
     }
 
     private void parseCourseOutline() {
+        // https://gate.lagou.com/v1/neirong/edu/bigcourse/getCourseOutline?courseId=4
         String strContent = this.getRespContent(this.courseOutlineUrl);
         JSONObject jsonRespObject = JSONObject.parseObject(strContent);
 
@@ -119,6 +120,12 @@ public class BigCourseDownloader {
 
             if (jsonCourseStageVos != null && !jsonCourseStageVos.isEmpty()) {
                 this.courseStageVoList = jsonCourseStageVos.toJavaList(CourseStageVo.class);
+                //[ {
+                //		"stageId": 24,
+                //		"stageName": "第一阶段 开源框架源码剖析",
+                //		"stageDesc": "该阶段是通过纯手写持久层、IoC&AOP等框架来培养框架思维和自定义框架的能力，通过SSM源码剖析进一步理解设计模式的具体应用。",
+                //		"weekVos": null
+                //	} ]
                 // filter 2086 (无效Part)
                 this.courseStageVoList.removeIf(courseStageVo -> courseStageVo.getStageId() == 2086);
             }
@@ -130,6 +137,7 @@ public class BigCourseDownloader {
         if (this.courseStageVoList != null && !this.courseStageVoList.isEmpty()) {
             for (CourseStageVo courseStageVo : this.courseStageVoList) {
                 String stageWeeksApi = MessageFormat.format(STAGE_WEEKS_API, this.courseId, courseStageVo.getStageId().toString());
+                // https://gate.lagou.com/v1/neirong/edu/bigcourse/getStageWeeks?courseId=4&stageId=24
                 String moduleContent = this.getRespContent(stageWeeksApi);
                 JSONObject jsonModuleRespObject = JSONObject.parseObject(moduleContent);
                 if (jsonModuleRespObject.getInteger("state") != RespCode.SUCCESS) {
@@ -138,7 +146,21 @@ public class BigCourseDownloader {
                     JSONArray jsonModuleContents = jsonModuleRespObject.getJSONArray("content");
                     if (!jsonModuleContents.isEmpty()) {
                         stageModuleVoList = jsonModuleContents.toJavaList(StageModuleVo.class);
+                        //[{
+                        //		"weekId": 25,
+                        //		"weekTag": "模块一",
+                        //		"weekName": "持久层框架设计实现及MyBatis源码分析",
+                        //		"weekDesc": "通过持久层框架的衍生分析，推导出开发步骤进而纯手写持久层框架，对MyBatis技术系统复习后进行源码剖析。",
+                        //		"homeworkSubmit": "JUDGED",
+                        //		"studyPercent": 84,
+                        //		"status": "OPEN",
+                        //		"classworkLessonId": 80,
+                        //		"classworkDayId": 66,
+                        //		"elective": false,
+                        //		"score": 100
+                        //	}]
                         this.stageNModuleVoMap.put(courseStageVo.getStageId(), stageModuleVoList);
+                        // stageId = 24, value = [{weekId:25}]
                     }
                 }
             }
@@ -150,9 +172,11 @@ public class BigCourseDownloader {
 
         if (!this.stageNModuleVoMap.isEmpty()) {
             for (List<StageModuleVo> stageModuleVoList : this.stageNModuleVoMap.values()) {
+                // stageModuleVoList = [{weekId:25...}]
                 if (stageModuleVoList != null && !stageModuleVoList.isEmpty()) {
                     for (StageModuleVo stageModuleVo : stageModuleVoList) {
                         String api = MessageFormat.format(WEEK_LESSONS_API, this.courseId, stageModuleVo.getWeekId().toString());
+                        // https://gate.lagou.com/v1/neirong/edu/bigcourse/getWeekLessons?courseId=4&weekId=25
                         String respContent = this.getRespContent(api);
 
                         JSONObject jsonObject = JSONObject.parseObject(respContent);
@@ -161,9 +185,88 @@ public class BigCourseDownloader {
                         } else {
                             JSONObject content = jsonObject.getJSONObject("content");
                             JSONArray jsonCourseDayInfoVos = content.getJSONArray("courseDayInfoVos");
+                            //courseDayInfoVos: [ {
+                            //		"dayId": 71,
+                            //		"sortNum": 0,
+                            //		"dayName": "开班典礼【回放】",
+                            //		"lessonInfoVos": null,
+                            //		"liveInfoVos": [
+                            //			{
+                            //				"liveId": 1000011,
+                            //				"liveDayId": 71,
+                            //				"liveName": "Java工程师高薪训练营12.23开班典礼",
+                            //				"liveStartTime": 1581523200000,
+                            //				"remainMillis": -105386606221,
+                            //				"liveStatus": "REPLAY",
+                            //				"liveStatusShowName": "回放",
+                            //				"liveUrl": null,
+                            //				"fileId": "627ebc9915e449158ed6792282eac2e4",
+                            //				"encryptedFileId": "bc7d7a8912354fbcb9ad980f1a0b8c76",
+                            //				"oldEncryptedFileId": null,
+                            //				"mediaId": 8194,
+                            //				"clarity": -1,
+                            //				"fileUrl": null,
+                            //				"fileSize": "846.85",
+                            //				"duration": "51:25",
+                            //				"durationNum": 3085,
+                            //				"tcEncryptedFileId": null,
+                            //				"tcAppId": null,
+                            //				"tcPlayerToken": null,
+                            //				"sortNum": 1,
+                            //				"resourceName": "",
+                            //				"resourceUrl": ""
+                            //			}
+                            //		],
+                            //		"totalDurationNum": 3085,
+                            //		"videoNum": 0,
+                            //		"doneVideoNum": 0
+                            //	} ,
+                            // {
+                            //		"dayId": 62,
+                            //		"sortNum": 1,
+                            //		"dayName": "任务一：自定义持久层框架",
+                            //		"lessonInfoVos": [
+                            //			{
+                            //				"lessonId": 16,
+                            //				"lessonDayId": 62,
+                            //				"lessonName": "JDBC回顾及问题分析",
+                            //				"lessonStatus": "FINISH",
+                            //				"type": "MEDIA",
+                            //				"testUrl": null,
+                            //				"resourceUrl": null,
+                            //				"classworkName": null,
+                            //				"classworkUploadUrl": null,
+                            //				"duration": "13:03",
+                            //				"durationNum": 783,
+                            //				"fileId": "657cd4c89210459f98bb54ab647f09f4",
+                            //				"encryptedFileId": "d00f206cf4724a38ace37a273161d0a3",
+                            //				"oldEncryptedFileId": "0582ee89490a43278992acde620f0712",
+                            //				"mediaId": 18,
+                            //				"clarity": -1,
+                            //				"fileUrl": null,
+                            //				"fileSize": "62.17",
+                            //				"tcEncryptedFileId": null,
+                            //				"tcAppId": null,
+                            //				"tcPlayerToken": null,
+                            //				"sortNum": 1,
+                            //				"classworkJudgeVo": null,
+                            //				"testPaperName": null,
+                            //				"testShowContent": null,
+                            //				"testPaperResultURL": null,
+                            //				"isNewTestURL": false,
+                            //				"lessonContent": null,
+                            //				"lessonContentH5URL": null
+                            //			}
+                            //		],
+                            //		"liveInfoVos": null,
+                            //		"totalDurationNum": 11751,
+                            //		"videoNum": 15,
+                            //		"doneVideoNum": 15
+                            //}]
                             if (!jsonCourseDayInfoVos.isEmpty()) {
                                 courseDayInfoVoList = JSONArray.parseArray(jsonCourseDayInfoVos.toJSONString(), CourseDayInfoVo.class);
                                 this.moduleNLessonVoMap.put(stageModuleVo.getWeekId(), courseDayInfoVoList);
+                                // weekId = 25, value = [{dayId:62,dayName:xxx,lessonInfoVos:[]}]
                             }
                         }
                     }
@@ -207,7 +310,7 @@ public class BigCourseDownloader {
 
                                 // 4th lesson
                                 List<LessonInfoVo> lessonInfoVoList = courseDayInfoVo.getLessonInfoVos();
-                                if (!lessonInfoVoList.isEmpty()) {
+                                if (lessonInfoVoList != null && !lessonInfoVoList.isEmpty()) {
                                     for (int i = 0; i < lessonInfoVoList.size(); i++) {
                                         LessonInfoVo lessonInfoVo = lessonInfoVoList.get(i);
                                         if (ResourceType.MEDIA.equals(lessonInfoVo.getType()) || ResourceType.RESOURCE.equals(lessonInfoVo.getType())) {
@@ -243,9 +346,10 @@ public class BigCourseDownloader {
                 videoInfoLoader.setLatch(this.latch);
                 videoInfoLoader.setType(lessonInfo.getType());
                 videoInfoLoader.setResourceUrl(lessonInfo.getResourceUrl());
-                ExecutorService.execute(videoInfoLoader);
+                // ExecutorService.execute(videoInfoLoader);
+                videoInfoLoader.run();
                 videoSize.getAndIncrement();
-            } else {
+            } else { // 课程已经下载过了，跳过
                 log.info("课程【{}】已经下载过了", lessonInfo.getVideoName());
                 latch.countDown();
                 ExecutorService.COUNTER.incrementAndGet();
